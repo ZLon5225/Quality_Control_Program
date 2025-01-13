@@ -6,7 +6,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 # Google Sheets Setup
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-credentials = ServiceAccountCredentials.from_json_keyfile_name("quality-control-program-c7880bb8751b.json", scope)  # Replace with your JSON file path
+credentials = ServiceAccountCredentials.from_json_keyfile_name("GOOGLE_CREDENTIALS_JSON.json", scope)  # Replace with your JSON file path
 client = gspread.authorize(credentials)
 
 # Open the Google Sheet (replace 'Your Quality Sheet Name' with the actual sheet name)
