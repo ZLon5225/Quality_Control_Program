@@ -6,7 +6,20 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 # Google Sheets Setup
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-credentials = ServiceAccountCredentials.from_json_keyfile_name("GOOGLE_CREDENTIALS_JSON.json", scope)  # Replace with your JSON file path
+import os
+import json
+from oauth2client.service_account import ServiceAccountCredentials
+
+# Load credentials from environment variable
+credentials_json = os.getenv("GOOGLE_CREDENTIALS_JSON")
+if credentials_json:
+    # Parse the credentials JSON string from the environment variable
+    credentials_dict = json.loads(credentials_json)
+    # Authenticate using the parsed credentials
+    credentials = ServiceAccountCredentials.from_json_keyfile_dict(credentials_dict, scope)
+    client = gspread.authorize(credentials)
+else:
+    raise Exception("Google Sheets credentials are not set. Please configure the GOOGLE_CREDENTIALS_JSON environment variable.")
 client = gspread.authorize(credentials)
 
 # Open the Google Sheet (replace 'Your Quality Sheet Name' with the actual sheet name)
