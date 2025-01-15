@@ -106,7 +106,7 @@ target_fill_levels_testing = {
 torque_threshold_testing = 7.0  # ft-lbs
 
 # App title
-st.title("Sun-Pine Quality Control Management Platform - Testing")
+st.title("Sun-Pine Quality Control Management Platform")
 st.markdown(
     """
     **Instructions for Supervisors (Testing Environment)**:  
@@ -115,7 +115,7 @@ st.markdown(
 )
 
 # Input section
-st.header("Input Data for Quality Checkpoints (Testing)")
+st.header("Input Data for Quality Checkpoints")
 
 # Current date input
 current_date_testing = st.date_input("Select Current Date", value=datetime.now().date())
@@ -125,7 +125,7 @@ sample_time_testing = st.text_input("Enter Time of Sample Taken (Testing) (e.g.,
 
 # Supervisor selection dropdown
 supervisor_testing = st.selectbox(
-    "Identify Supervisor (Testing)",
+    "Identify Supervisor",
     options=[
         "Zach Courtney", "Parker Reed", "Lee Thomas", "Michael Courtney",
         "Angela Przekota", "LaToria Johnson", "Wendell Carter",
@@ -135,7 +135,7 @@ supervisor_testing = st.selectbox(
 
 # Production line selection dropdown
 production_line_testing = st.selectbox(
-    "Select Production Line (Testing)",
+    "Select Production Line",
     options=[
         "Line 1", "Line 2", "Line 3", "Line 4", "Line 5",
         "Line 6", "Line 7", "Line 8", "Line 9"
@@ -144,16 +144,16 @@ production_line_testing = st.selectbox(
 
 # Product selection dropdown
 product_testing = st.selectbox(
-    "Select Product Being Checked (Testing)",
+    "Select Product Being Checked",
     options=list(target_fill_levels_testing.keys())
 )
 
 # Torque Testing
-st.header("Torque Testing (Testing)")
+st.header("Torque Testing")
 st.markdown(
     """
     **Instructions for Torque Testing**:  
-    Test 3 different samples using the torque measurement device and record the results below.
+    Test 3 different samples using the torque measurement device and record the results below. Turn the cap horizontally in a couterclockwise motion, and do not apply downward pressure.
     """
 )
 
@@ -168,7 +168,7 @@ average_torque_testing = (torque_1_testing + torque_2_testing + torque_3_testing
 # Display average torque and validate
 torque_status_testing = "N/A"
 if torque_1_testing and torque_2_testing and torque_3_testing:
-    st.write(f"**Average Torque: {average_torque_testing:.2f} ft-lbs (Testing)**")
+    st.write(f"**Average Torque: {average_torque_testing:.2f} ft-lbs**")
     if average_torque_testing >= torque_threshold_testing:
         st.success("The average torque is acceptable.")
         torque_status_testing = "Acceptable"
@@ -177,7 +177,7 @@ if torque_1_testing and torque_2_testing and torque_3_testing:
         torque_status_testing = "Not Acceptable"
 
 # Bottle and Case Code Verification
-st.header("Bottle and Case Code Verification (Testing)")
+st.header("Bottle and Case Code Verification")
 bottle_code_legible = st.radio("Is the bottle coded with a legible batch code?", options=["Yes", "No"])
 bottle_batch_code = ""
 if bottle_code_legible == "Yes":
@@ -199,7 +199,7 @@ if bottle_batch_code and case_batch_code:
         batch_code_match = "No"
 # Fill Level Section
 # Fill Level Section
-st.header("Fill Level Check (Testing)")
+st.header("Fill Level Check")
 
 # Display the target fill level for the selected product
 if product_testing in target_fill_levels_testing:
@@ -231,7 +231,7 @@ else:
     st.warning("Please select a valid product to display the target fill level.")
 
 # Production Data Section
-st.header("Production Data (Testing)")
+st.header("Production Data")
 
 # Input for production rate
 production_rate_testing = st.number_input(
@@ -242,7 +242,7 @@ production_rate_testing = st.number_input(
 )
 
 # Labor Force Utilization Section
-st.header("Labor Force Utilization (Testing)")
+st.header("Labor Force Utilization")
 
 # Input for number of employees working on the line
 total_employees_testing = st.number_input(
