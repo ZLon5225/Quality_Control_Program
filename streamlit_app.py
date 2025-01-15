@@ -292,10 +292,6 @@ if submit_testing:
         supervisor_comments_testing or ""          # Supervisor Comments
     ]
 
-    # Debugging Output
-    st.write("Data being sent to Google Sheets:")
-    st.write(row_data)
-
     # Append Data to Google Sheets
     try:
         sheet.append_row(row_data)
