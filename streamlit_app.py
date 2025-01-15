@@ -197,50 +197,42 @@ if bottle_batch_code and case_batch_code:
     else:
         st.error("The bottle and case batch codes do not match. Notify the supervisor.")
         batch_code_match = "No"
+# Fill Level Section
+st.header("Fill Level Check (Testing)")
 
-# Production Data
-st.header("Production Data (Testing)")
-production_rate_testing = st.number_input(
-    "Enter Production Rate (bottles per minute):",
-    min_value=0,
-    step=1,
-    value=0
-)
+# Display the target fill level for the selected product
+if product_testing in target_fill_levels_testing:
+    target_fill = target_fill_levels_testing[product_testing]
+    lower_bound = target_fill * 0.95
+    upper_bound = target_fill * 1.05
 
-# Labor Force Utilization
-st.header("Labor Force Utilization (Testing)")
-total_employees_testing = st.number_input(
-    "Total Number of Employees Working on the Line:",
-    min_value=0,
-    step=1,
-    value=0
-)
+    st.write(f"**Target Fill Level for {product_testing}: {target_fill} oz**")
+    st.write(f"**Acceptable Range: {lower_bound:.2f} oz to {upper_bound:.2f} oz**")
 
-# Supervisor Comments Section
-st.header("Supervisor Comments")
-supervisor_comments_testing = st.text_area(
-    "Enter Comments for Maintenance Requests or Employee Issues (Optional):"
-)
+    # Input for actual fill level
+    actual_fill_level_testing = st.number_input(
+        "Enter Actual Fill Level (in ounces):",
+        min_value=0.0,
+        step=0.1,
+        format="%.2f"
+    )
 
-# Submit button
-submit_testing = st.button("Submit Quality Check (Testing)")
+    # Check if the actual fill level is within the acceptable range
+    fill_level_status = "N/A"
+    if actual_fill_level_testing:
+        if lower_bound <= actual_fill_level_testing <= upper_bound:
+            st.success(f"The fill level of {actual_fill_level_testing:.2f} oz is within the acceptable range.")
+            fill_level_status = "Acceptable"
+        else:
+            st.error(f"The fill level of {actual_fill_level_testing:.2f} oz is outside the acceptable range.")
+            fill_level_status = "Not Acceptable"
+else:
+    st.warning("Please select a valid product to display the target fill level.")
 
-# Handle data submission
+# Submit Data to Google Sheets
 if submit_testing:
     # Generate timestamp
     timestamp_testing = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    # Fill Level Check
-    target_fill = target_fill_levels_testing.get(product_testing, 0)  # Default to 0 if the product is not in the dictionary
-    lower_bound = target_fill * 0.95
-    upper_bound = target_fill * 1.05
-    fill_level_status = "N/A"
-
-    if actual_fill_level_testing:
-        if lower_bound <= actual_fill_level_testing <= upper_bound:
-            fill_level_status = "Acceptable"
-        else:
-            fill_level_status = "Not Acceptable"
 
     # Collect data for submission
     row_data = [
@@ -250,7 +242,7 @@ if submit_testing:
         supervisor_testing or "",                  # Supervisor Name
         production_line_testing or "",             # Production Line
         product_testing or "",                     # Product
-        target_fill,                               # Target Fill Level
+        target_fill if product_testing in target_fill_levels_testing else 0,  # Target Fill Level
         actual_fill_level_testing or 0,            # Actual Fill Level
         fill_level_status,                         # Fill Level Status
         torque_1_testing or 0,                     # Torque Sample 1
@@ -266,13 +258,14 @@ if submit_testing:
         supervisor_comments_testing or ""          # Supervisor Comments
     ]
 
-    # Debug output
+    # Debugging Output
     st.write("Data being sent to Google Sheets:")
     st.write(row_data)
 
-    # Try appending the data to Google Sheets
+    # Append Data to Google Sheets
     try:
         sheet.append_row(row_data)
         st.success("Quality checkpoint submitted successfully!")
     except Exception as e:
         st.error(f"Error appending data to Google Sheets: {e}")
+
