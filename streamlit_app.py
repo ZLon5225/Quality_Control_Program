@@ -230,13 +230,34 @@ if submit_testing:
     # Generate timestamp
     timestamp_testing = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # Debug output
-    st.write("Data being sent to Google Sheets (Timestamp Only):")
-    st.write([timestamp_testing])
+    # Collect data for submission
+    row_data = [
+        timestamp_testing,                         # Timestamp
+        str(current_date_testing),                 # Current Date
+        sample_time_testing or "",                 # Sample Time
+        supervisor_testing or "",                  # Supervisor Name
+        production_line_testing or "",             # Production Line
+        product_testing or "",                     # Product
+        torque_1_testing or 0,                     # Torque Sample 1
+        torque_2_testing or 0,                     # Torque Sample 2
+        torque_3_testing or 0,                     # Torque Sample 3
+        round(average_torque_testing, 2) if average_torque_testing else 0,  # Average Torque
+        torque_status_testing or "",               # Torque Status
+        bottle_batch_code or "",                   # Bottle Batch Code
+        case_batch_code or "",                     # Case Batch Code
+        batch_code_match or "",                    # Batch Code Match (Yes/No)
+        production_rate_testing or 0,              # Production Rate
+        total_employees_testing or 0,              # Total Employees
+        supervisor_comments_testing or ""          # Supervisor Comments
+    ]
 
-    # Try appending the timestamp to Google Sheets
+    # Debug output
+    st.write("Data being sent to Google Sheets:")
+    st.write(row_data)
+
+    # Try appending the data to Google Sheets
     try:
-        sheet.append_row([timestamp_testing])
-        st.success("Timestamp submitted successfully!")
+        sheet.append_row(row_data)
+        st.success("Quality checkpoint submitted successfully!")
     except Exception as e:
-        st.error(f"Error appending timestamp to Google Sheets: {e}")
+        st.error(f"Error appending data to Google Sheets: {e}")
