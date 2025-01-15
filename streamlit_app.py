@@ -1,36 +1,80 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
+import numpy as np
+from datetime import datetime, time
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-
-# Google Sheets Setup
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 import os
 import json
-from oauth2client.service_account import ServiceAccountCredentials
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
 
-# Load credentials from environment variable
-credentials_json = os.getenv("GOOGLE_CREDENTIALS_JSON")
-if credentials_json:
-    # Parse the credentials JSON string from the environment variable
-    credentials_dict = json.loads(credentials_json)
-    # Authenticate using the parsed credentials
+# Google Sheets Setup for Testing
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+
+# Path to the JSON credentials file
+credentials_path = "GOOGLE_CREDENTIALS-JSON.json"
+
+# Load the credentials from the JSON file
+if os.path.exists(credentials_path):
+    with open(credentials_path, "r") as f:
+        credentials_dict = json.load(f)
     credentials = ServiceAccountCredentials.from_json_keyfile_dict(credentials_dict, scope)
     client = gspread.authorize(credentials)
 else:
-    raise Exception("Google Sheets credentials are not set. Please configure the GOOGLE_CREDENTIALS_JSON environment variable.")
-client = gspread.authorize(credentials)
+    raise Exception(f"Google Sheets credentials file not found at {credentials_path}. Please verify the path.")
 
-# Open the Google Sheet (replace 'Your Quality Sheet Name' with the actual sheet name)
-sheet = client.open("Quality Control Program").sheet1  # Replace with your Google Sheet name
+# Open the Google Sheet for Testing
+sheet = client.open("Quality Control ProgramTesting").sheet1  # Testing version
 
 # Initialize session state for data storage
-if "data" not in st.session_state:
-    st.session_state["data"] = []
+if "dataTesting" not in st.session_state:
+    st.session_state["dataTesting"] = []
+
+# Initialize DataFrame for plotting if not already in session state
+if "plot_data" not in st.session_state:
+    st.session_state["plot_data"] = pd.DataFrame(columns=["timestamp", "production_line", "production_rate"])
+
+# Helper function to plot scatter and trendline for each line
+def plot_individual_lines(data):
+    grouped = data.groupby("production_line")
+    for line, group in grouped:
+        plt.figure(figsize=(10, 6))
+
+        # Convert timestamps to datetime objects
+        group["time"] = pd.to_datetime(group["timestamp"])
+
+        # Prepare x and y data
+        x = group["time"]
+        y = group["production_rate"].values
+
+        # Scatter plot
+        plt.scatter(x, y, label=f"{line} (Data Points)")
+
+        # Trendline using Linear Regression
+        if len(x) > 1:  # Fit only if there's enough data
+            # Convert datetime to numeric values for regression
+            x_numeric = np.array([t.timestamp() for t in x]).reshape(-1, 1)
+            model = LinearRegression()
+            model.fit(x_numeric, y)
+            y_pred = model.predict(x_numeric)
+            plt.plot(x, y_pred, label=f"{line} (Trendline)", linestyle="--")
+
+        # Format the x-axis range
+        plt.xlim([datetime.combine(datetime.now(), time(8, 0)),
+                  datetime.combine(datetime.now(), time(19, 0))])
+        plt.xticks(rotation=45)
+        plt.title(f"Production Rates for {line}")
+        plt.xlabel("Time of Day")
+        plt.ylabel("Production Rate (Bottles per Minute)")
+        plt.legend()
+        plt.grid(True)
+
+        # Display the plot in Streamlit
+        st.pyplot(plt)
 
 # Target fill levels for each product (in ounces)
-target_fill_levels = {
+target_fill_levels_testing = {
     "64oz Family Dollar Lemon Ammonia": 64,
     "64oz True Living Lemon Ammonia RP2555": 64,
     "64oz True Living Cleaning Vinegar RP2555": 64,
@@ -53,29 +97,29 @@ target_fill_levels = {
 }
 
 # Torque testing threshold
-torque_threshold = 8.0  # ft-lbs
+torque_threshold_testing = 7.0  # ft-lbs
 
 # App title
-st.title("Sun-Pine Quality Control Management Platform")
+st.title("Sun-Pine Quality Control Management Platform - Testing")
 st.markdown(
     """
-    **Instructions for Supervisors**:  
+    **Instructions for Supervisors (Testing Environment)**:  
     Please complete this form every 15 minutes. Record accurate data for quality control checkpoints.  
     """
 )
 
 # Input section
-st.header("Input Data for Quality Checkpoints")
+st.header("Input Data for Quality Checkpoints (Testing)")
 
 # Current date input
-current_date = st.date_input("Select Current Date", value=datetime.now().date())
+current_date_testing = st.date_input("Select Current Date", value=datetime.now().date())
 
 # Sample time input
-sample_time = st.text_input("Enter Time of Sample Taken (e.g., 2:30 PM)")
+sample_time_testing = st.text_input("Enter Time of Sample Taken (Testing) (e.g., 2:30 PM)")
 
 # Supervisor selection dropdown
-supervisor = st.selectbox(
-    "Identify Supervisor",
+supervisor_testing = st.selectbox(
+    "Identify Supervisor (Testing)",
     options=[
         "Zach Courtney", "Parker Reed", "Lee Thomas", "Michael Courtney",
         "Angela Przekota", "LaToria Johnson", "Wendell Carter",
@@ -84,8 +128,8 @@ supervisor = st.selectbox(
 )
 
 # Production line selection dropdown
-production_line = st.selectbox(
-    "Select Production Line",
+production_line_testing = st.selectbox(
+    "Select Production Line (Testing)",
     options=[
         "Line 1", "Line 2", "Line 3", "Line 4", "Line 5",
         "Line 6", "Line 7", "Line 8", "Line 9"
@@ -93,134 +137,114 @@ production_line = st.selectbox(
 )
 
 # Product selection dropdown
-product = st.selectbox(
-    "Select Product Being Checked",
-    options=list(target_fill_levels.keys())
+product_testing = st.selectbox(
+    "Select Product Being Checked (Testing)",
+    options=list(target_fill_levels_testing.keys())
 )
 
-# Retrieve the target fill level for the selected product
-target_fill = target_fill_levels[product]
-
-# Calculate the acceptable range
-lower_bound = target_fill * 0.95
-upper_bound = target_fill * 1.05
-
-# Display the acceptable range
-st.write(f"**Target Fill Level for {product}: {target_fill}oz**")
-st.write(f"**Acceptable Range: {lower_bound:.2f}oz to {upper_bound:.2f}oz**")
-
-# Input the actual fill level
-actual_fill_level = st.number_input(
-    "Enter Actual Fill Level (in ounces)",
-    min_value=0.0,
-    step=0.1,
-    format="%.2f"
-)
-
-# Check if the actual fill level is within the acceptable range
-fill_level_status = "N/A"
-if actual_fill_level:
-    if lower_bound <= actual_fill_level <= upper_bound:
-        st.success(f"The fill level of {actual_fill_level:.2f}oz is within the acceptable range.")
-        fill_level_status = "Acceptable"
-    else:
-        st.error(f"The fill level of {actual_fill_level:.2f}oz is outside the acceptable range.")
-        fill_level_status = "Not Acceptable"
-
-# Additional quality checks
-label_alignment = st.radio("Is the label alignment correct?", options=["Yes", "No"])
-
-# Removal Torque Testing
-st.header("Removal Torque Testing")
+# Torque Testing
+st.header("Torque Testing (Testing)")
 st.markdown(
     """
-    **Instructions for Testing Torque**:
-    1. Use the torque measurement device to test 3 different samples.
-    2. Record the torque values (in ft-lbs) for all 3 samples below.
+    **Instructions for Torque Testing**:  
+    Test 3 different samples using the torque measurement device and record the results below.
     """
 )
 
 # Input torque measurements
-torque_1 = st.number_input("Enter Torque Measurement for Sample 1 (ft-lbs)", min_value=0.0, step=0.1, format="%.2f")
-torque_2 = st.number_input("Enter Torque Measurement for Sample 2 (ft-lbs)", min_value=0.0, step=0.1, format="%.2f")
-torque_3 = st.number_input("Enter Torque Measurement for Sample 3 (ft-lbs)", min_value=0.0, step=0.1, format="%.2f")
+torque_1_testing = st.number_input("Enter Torque Measurement for Sample 1 (ft-lbs):", min_value=0.0, step=0.1, format="%.2f")
+torque_2_testing = st.number_input("Enter Torque Measurement for Sample 2 (ft-lbs):", min_value=0.0, step=0.1, format="%.2f")
+torque_3_testing = st.number_input("Enter Torque Measurement for Sample 3 (ft-lbs):", min_value=0.0, step=0.1, format="%.2f")
 
 # Calculate the average torque
-average_torque = (torque_1 + torque_2 + torque_3) / 3 if torque_1 and torque_2 and torque_3 else 0.0
+average_torque_testing = (torque_1_testing + torque_2_testing + torque_3_testing) / 3 if torque_1_testing and torque_2_testing and torque_3_testing else 0.0
 
-# Display the average and validation
-torque_status = "N/A"
-if torque_1 and torque_2 and torque_3:
-    st.write(f"**Average Torque: {average_torque:.2f} ft-lbs**")
-    if average_torque >= torque_threshold:
+# Display average torque and validate
+torque_status_testing = "N/A"
+if torque_1_testing and torque_2_testing and torque_3_testing:
+    st.write(f"**Average Torque: {average_torque_testing:.2f} ft-lbs (Testing)**")
+    if average_torque_testing >= torque_threshold_testing:
         st.success("The average torque is acceptable.")
-        torque_status = "Acceptable"
+        torque_status_testing = "Acceptable"
     else:
-        st.error("The average torque is below the acceptable threshold of 8 ft-lbs.")
-        torque_status = "Not Acceptable"
+        st.error(f"The average torque is below the acceptable threshold of {torque_threshold_testing} ft-lbs.")
+        torque_status_testing = "Not Acceptable"
 
-# Bottle batch code
+# Bottle and Case Code Verification
+st.header("Bottle and Case Code Verification (Testing)")
 bottle_code_legible = st.radio("Is the bottle coded with a legible batch code?", options=["Yes", "No"])
 bottle_batch_code = ""
 if bottle_code_legible == "Yes":
-    bottle_batch_code = st.text_input("Enter the Bottle Batch Code")
+    bottle_batch_code = st.text_input("Enter the Bottle Batch Code:")
 
-# Case batch code
 case_code_legible = st.radio("Is the case coded with a legible batch code?", options=["Yes", "No"])
 case_batch_code = ""
 if case_code_legible == "Yes":
-    case_batch_code = st.text_input("Enter the Case Batch Code")
+    case_batch_code = st.text_input("Enter the Case Batch Code:")
 
-# Compare batch codes
+# Check if bottle and case batch codes match
+batch_code_match = "N/A"
 if bottle_batch_code and case_batch_code:
     if bottle_batch_code == case_batch_code:
         st.success("The bottle and case batch codes match.")
+        batch_code_match = "Yes"
     else:
         st.error("The bottle and case batch codes do not match. Notify the supervisor.")
+        batch_code_match = "No"
+
+# Production Data
+st.header("Production Data (Testing)")
+production_rate_testing = st.number_input(
+    "Enter Production Rate (bottles per minute):",
+    min_value=0,
+    step=1,
+    value=0
+)
+
+# Labor Force Utilization
+st.header("Labor Force Utilization (Testing)")
+total_employees_testing = st.number_input(
+    "Total Number of Employees Working on the Line:",
+    min_value=0,
+    step=1,
+    value=0
+)
+
+# Supervisor Comments Section
+st.header("Supervisor Comments")
+supervisor_comments_testing = st.text_area(
+    "Enter Comments for Maintenance Requests or Employee Issues (Optional):"
+)
 
 # Submit button
-submit = st.button("Submit Quality Check")
+submit_testing = st.button("Submit Quality Check (Testing)")
 
 # Handle data submission
-if submit:
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    checkpoint_entry = {
-        "timestamp": timestamp,
-        "current_date": str(current_date),
-        "sample_time": sample_time,
-        "supervisor": supervisor,
-        "production_line": production_line,
-        "product": product,
-        "target_fill_level": target_fill,
-        "actual_fill_level": actual_fill_level,
-        "fill_level_status": fill_level_status,
-        "label_alignment": label_alignment,
-        "torque_sample_1": torque_1,
-        "torque_sample_2": torque_2,
-        "torque_sample_3": torque_3,
-        "average_torque": average_torque,
-        "torque_status": torque_status,
-        "bottle_batch_code": bottle_batch_code,
-        "case_batch_code": case_batch_code,
-        "batch_code_match": "Yes" if bottle_batch_code == case_batch_code else "No"
+if submit_testing:
+    timestamp_testing = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    new_row = {
+        "timestamp": timestamp_testing,
+        "production_line": production_line_testing,
+        "production_rate": production_rate_testing,
     }
-    st.session_state["data"].append(checkpoint_entry)
+    st.session_state["plot_data"] = pd.concat(
+        [st.session_state["plot_data"], pd.DataFrame([new_row])], ignore_index=True
+    )
 
     # Append data to Google Sheet
     sheet.append_row([
-        checkpoint_entry["timestamp"], checkpoint_entry["current_date"], checkpoint_entry["sample_time"],
-        checkpoint_entry["supervisor"], checkpoint_entry["production_line"], checkpoint_entry["product"],
-        checkpoint_entry["target_fill_level"], checkpoint_entry["actual_fill_level"],
-        checkpoint_entry["fill_level_status"], checkpoint_entry["label_alignment"],
-        checkpoint_entry["torque_sample_1"], checkpoint_entry["torque_sample_2"], checkpoint_entry["torque_sample_3"],
-        checkpoint_entry["average_torque"], checkpoint_entry["torque_status"],
-        checkpoint_entry["bottle_batch_code"], checkpoint_entry["case_batch_code"],
-        checkpoint_entry["batch_code_match"]
+        timestamp_testing, str(current_date_testing), sample_time_testing, supervisor_testing,
+        production_line_testing, product_testing, torque_1_testing, torque_2_testing,
+        torque_3_testing, average_torque_testing, torque_status_testing,
+        bottle_batch_code, case_batch_code, batch_code_match,
+        production_rate_testing, total_employees_testing, supervisor_comments_testing
     ])
-    
-    st.success(f"Quality checkpoint submitted successfully!")
 
-# Display submitted data
-if st.session_state["data"]:
-    st.header("Submitted Quality Checkpoints")
-    st.dataframe(pd.DataFrame(st.session_state["data"]))
+    st.success("Quality checkpoint submitted successfully (Testing)!")
+
+# Plot production rate scatter plots for individual lines
+st.header("Production Rate Scatter Plots for Each Line")
+if not st.session_state["plot_data"].empty:
+    plot_individual_lines(st.session_state["plot_data"])
+else:
+    st.info("No production data available for plotting.")
