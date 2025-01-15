@@ -236,22 +236,27 @@ if submit_testing:
         [st.session_state["plot_data"], pd.DataFrame([new_row])], ignore_index=True
     )
 
+    # Debugging: Print data being sent to Google Sheets
+    st.write("Data being sent to Google Sheets:")
+    st.write([
+        timestamp_testing, str(current_date_testing), sample_time_testing or "", supervisor_testing or "",
+        production_line_testing or "", product_testing or "",
+        torque_1_testing or 0, torque_2_testing or 0, torque_3_testing or 0,
+        round(average_torque_testing, 2) if average_torque_testing else 0,
+        torque_status_testing or "", bottle_batch_code or "", case_batch_code or "",
+        batch_code_match or "", production_rate_testing or 0,
+        total_employees_testing or 0, supervisor_comments_testing or ""
+    ])
+
     # Append data to Google Sheet
     sheet.append_row([
-    timestamp_testing, str(current_date_testing), sample_time_testing or "", supervisor_testing or "",
-    production_line_testing or "", product_testing or "", 
-    torque_1_testing or 0, torque_2_testing or 0, torque_3_testing or 0,
-    round(average_torque_testing, 2) if average_torque_testing else 0, 
-    torque_status_testing or "", bottle_batch_code or "", case_batch_code or "",
-    batch_code_match or "", production_rate_testing or 0,
-    total_employees_testing or 0, supervisor_comments_testing or ""
-])
+        timestamp_testing, str(current_date_testing), sample_time_testing or "", supervisor_testing or "",
+        production_line_testing or "", product_testing or "",
+        torque_1_testing or 0, torque_2_testing or 0, torque_3_testing or 0,
+        round(average_torque_testing, 2) if average_torque_testing else 0,
+        torque_status_testing or "", bottle_batch_code or "", case_batch_code or "",
+        batch_code_match or "", production_rate_testing or 0,
+        total_employees_testing or 0, supervisor_comments_testing or ""
+    ])
 
     st.success("Quality checkpoint submitted successfully (Testing)!")
-
-# Plot production rate scatter plots for individual lines
-st.header("Production Rate Scatter Plots for Each Line")
-if not st.session_state["plot_data"].empty:
-    plot_individual_lines(st.session_state["plot_data"])
-else:
-    st.info("No production data available for plotting.")
