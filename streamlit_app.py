@@ -15,17 +15,22 @@ scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/au
 # Path to the JSON credentials file
 credentials_path = "GOOGLE_CREDENTIALS-JSON.json"
 
-# Load the credentials from the JSON file
-if os.path.exists(credentials_path):
-    with open(credentials_path, "r") as f:
-        credentials_dict = json.load(f)
-    credentials = ServiceAccountCredentials.from_json_keyfile_dict(credentials_dict, scope)
-    client = gspread.authorize(credentials)
-else:
-    raise Exception(f"Google Sheets credentials file not found at {credentials_path}. Please verify the path.")
+# Load credentials from Streamlit Secrets
+import json
+from oauth2client.service_account import ServiceAccountCredentials
 
-# Open the Google Sheet for Testing
-sheet = client.open("Quality Control Program").sheet1  # Testing version
+# Google Sheets Setup
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+
+# Retrieve credentials from Streamlit Secrets
+credentials_json = st.secrets["GOOGLE_CREDENTIALS_JSON"]
+
+# Parse the credentials JSON
+credentials_dict = json.loads(credentials_json)
+
+# Authenticate with Google Sheets
+credentials = ServiceAccountCredentials.from_json_keyfile_dict(credentials_dict, scope)
+client = gspread.authorize(credentials)
 
 # Initialize session state for data storage
 if "dataTesting" not in st.session_state:
