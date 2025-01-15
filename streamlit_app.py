@@ -229,6 +229,8 @@ if product_testing in target_fill_levels_testing:
 else:
     st.warning("Please select a valid product to display the target fill level.")
 
+submit_testing = st.button("Submit Quality Check")
+
 # Submit Data to Google Sheets
 if submit_testing:
     # Generate timestamp
