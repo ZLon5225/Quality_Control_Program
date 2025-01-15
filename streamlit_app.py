@@ -226,37 +226,19 @@ submit_testing = st.button("Submit Quality Check (Testing)")
 
 # Handle data submission
 if submit_testing:
+    # Generate timestamp
     timestamp_testing = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    new_row = {
-        "timestamp": timestamp_testing,
-        "production_line": production_line_testing,
-        "production_rate": production_rate_testing,
-    }
-    st.session_state["plot_data"] = pd.concat(
-        [st.session_state["plot_data"], pd.DataFrame([new_row])], ignore_index=True
-    )
 
-    # Debugging: Print data being sent to Google Sheets
-    st.write("Data being sent to Google Sheets:")
-    st.write([
-        timestamp_testing, str(current_date_testing), sample_time_testing or "", supervisor_testing or "",
-        production_line_testing or "", product_testing or "",
-        torque_1_testing or 0, torque_2_testing or 0, torque_3_testing or 0,
-        round(average_torque_testing, 2) if average_torque_testing else 0,
-        torque_status_testing or "", bottle_batch_code or "", case_batch_code or "",
-        batch_code_match or "", production_rate_testing or 0,
-        total_employees_testing or 0, supervisor_comments_testing or ""
-    ])
+    # Debug output
+    st.write("Data being sent to Google Sheets (Timestamp Only):")
+    st.write([timestamp_testing])
 
-    # Append data to Google Sheet
-    sheet.append_row([
-        timestamp_testing, str(current_date_testing), sample_time_testing or "", supervisor_testing or "",
-        production_line_testing or "", product_testing or "",
-        torque_1_testing or 0, torque_2_testing or 0, torque_3_testing or 0,
-        round(average_torque_testing, 2) if average_torque_testing else 0,
-        torque_status_testing or "", bottle_batch_code or "", case_batch_code or "",
-        batch_code_match or "", production_rate_testing or 0,
-        total_employees_testing or 0, supervisor_comments_testing or ""
+    # Try appending the timestamp to Google Sheets
+    try:
+        sheet.append_row([timestamp_testing])
+        st.success("Timestamp submitted successfully!")
+    except Exception as e:
+        st.error(f"Error appending timestamp to Google Sheets: {e}")
     ])
 
     st.success("Quality checkpoint submitted successfully (Testing)!")
