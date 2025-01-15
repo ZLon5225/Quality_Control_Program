@@ -230,6 +230,18 @@ if submit_testing:
     # Generate timestamp
     timestamp_testing = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+    # Fill Level Check
+    target_fill = target_fill_levels_testing.get(product_testing, 0)  # Default to 0 if the product is not in the dictionary
+    lower_bound = target_fill * 0.95
+    upper_bound = target_fill * 1.05
+    fill_level_status = "N/A"
+
+    if actual_fill_level_testing:
+        if lower_bound <= actual_fill_level_testing <= upper_bound:
+            fill_level_status = "Acceptable"
+        else:
+            fill_level_status = "Not Acceptable"
+
     # Collect data for submission
     row_data = [
         timestamp_testing,                         # Timestamp
@@ -238,6 +250,9 @@ if submit_testing:
         supervisor_testing or "",                  # Supervisor Name
         production_line_testing or "",             # Production Line
         product_testing or "",                     # Product
+        target_fill,                               # Target Fill Level
+        actual_fill_level_testing or 0,            # Actual Fill Level
+        fill_level_status,                         # Fill Level Status
         torque_1_testing or 0,                     # Torque Sample 1
         torque_2_testing or 0,                     # Torque Sample 2
         torque_3_testing or 0,                     # Torque Sample 3
