@@ -239,6 +239,3 @@ if submit_testing:
         st.success("Timestamp submitted successfully!")
     except Exception as e:
         st.error(f"Error appending timestamp to Google Sheets: {e}")
-    ])
-
-    st.success("Quality checkpoint submitted successfully (Testing)!")
