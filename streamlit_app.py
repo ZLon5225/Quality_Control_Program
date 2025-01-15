@@ -198,6 +198,7 @@ if bottle_batch_code and case_batch_code:
         st.error("The bottle and case batch codes do not match. Notify the supervisor.")
         batch_code_match = "No"
 # Fill Level Section
+# Fill Level Section
 st.header("Fill Level Check (Testing)")
 
 # Display the target fill level for the selected product
@@ -229,9 +230,40 @@ if product_testing in target_fill_levels_testing:
 else:
     st.warning("Please select a valid product to display the target fill level.")
 
+# Production Data Section
+st.header("Production Data (Testing)")
+
+# Input for production rate
+production_rate_testing = st.number_input(
+    "Enter Production Rate (bottles per minute):",
+    min_value=0,
+    step=1,
+    value=0
+)
+
+# Labor Force Utilization Section
+st.header("Labor Force Utilization (Testing)")
+
+# Input for number of employees working on the line
+total_employees_testing = st.number_input(
+    "Total Number of Employees Working on the Line:",
+    min_value=0,
+    step=1,
+    value=0
+)
+
+# Supervisor Comments Section
+st.header("Supervisor Comments")
+
+# Text area for supervisor comments
+supervisor_comments_testing = st.text_area(
+    "Enter Comments for Maintenance Requests or Employee Issues (Optional):"
+)
+
+# Submit Button
 submit_testing = st.button("Submit Quality Check")
 
-# Submit Data to Google Sheets
+# Submission Logic
 if submit_testing:
     # Generate timestamp
     timestamp_testing = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -270,4 +302,3 @@ if submit_testing:
         st.success("Quality checkpoint submitted successfully!")
     except Exception as e:
         st.error(f"Error appending data to Google Sheets: {e}")
-
