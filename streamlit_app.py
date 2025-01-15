@@ -25,7 +25,7 @@ else:
     raise Exception(f"Google Sheets credentials file not found at {credentials_path}. Please verify the path.")
 
 # Open the Google Sheet for Testing
-sheet = client.open("Quality Control ProgramTesting").sheet1  # Testing version
+sheet = client.open("Quality Control Program").sheet1  # Testing version
 
 # Initialize session state for data storage
 if "dataTesting" not in st.session_state:
