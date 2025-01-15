@@ -238,12 +238,14 @@ if submit_testing:
 
     # Append data to Google Sheet
     sheet.append_row([
-        timestamp_testing, str(current_date_testing), sample_time_testing, supervisor_testing,
-        production_line_testing, product_testing, torque_1_testing, torque_2_testing,
-        torque_3_testing, average_torque_testing, torque_status_testing,
-        bottle_batch_code, case_batch_code, batch_code_match,
-        production_rate_testing, total_employees_testing, supervisor_comments_testing
-    ])
+    timestamp_testing, str(current_date_testing), sample_time_testing or "", supervisor_testing or "",
+    production_line_testing or "", product_testing or "", 
+    torque_1_testing or 0, torque_2_testing or 0, torque_3_testing or 0,
+    round(average_torque_testing, 2) if average_torque_testing else 0, 
+    torque_status_testing or "", bottle_batch_code or "", case_batch_code or "",
+    batch_code_match or "", production_rate_testing or 0,
+    total_employees_testing or 0, supervisor_comments_testing or ""
+])
 
     st.success("Quality checkpoint submitted successfully (Testing)!")
 
