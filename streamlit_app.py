@@ -110,7 +110,7 @@ st.title("Sun-Pine Quality Control Management Platform")
 st.markdown(
     """
     **Instructions for Supervisors (Testing Environment)**:  
-    Please complete this form every 15 minutes. Record accurate data for quality control checkpoints.  
+    Please complete this form as often as possible, with a minimum of 3 checks before lunch and a minimum of 3 checks after lunch. Please provide ANY feedback in the comment section for improvement." 
     """
 )
 
