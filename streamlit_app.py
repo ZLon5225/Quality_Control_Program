@@ -109,7 +109,7 @@ torque_threshold_testing = 7.0  # ft-lbs
 st.title("Sun-Pine Quality Control Management Platform")
 st.markdown(
     """
-    **Instructions for Supervisors (Testing Environment)**:  
+    **Instructions for Supervisors**:  
     Please complete this form as often as possible, with a minimum of 3 checks before lunch and a minimum of 3 checks after lunch. Please provide ANY feedback in the comment section for improvement.
     The more data we are able to generate, the better we will be able to make improvements to the production process. 
     """
