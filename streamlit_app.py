@@ -244,7 +244,7 @@ production_rate_testing = st.number_input(
 # Alert for low production rate
 if production_rate_testing < 75 and production_rate_testing > 0:
     st.warning(
-        f"⚠️ The production rate of {production_rate_testing} units per minute is below the target threshold of 75 units per minute. "
+        f"⚠️ The production rate of {production_rate_testing} units per minute is below the target threshold of a minimum of 75 units per minute. Please work to increase above 80 and provide comments on what you think is needed to achieve this target. "
         "Please take immediate action to improve the line's performance."
     )
     st.info("Suggested actions: Check bottlenecks, ensure all employees are performing their tasks efficiently, and review machine settings.")# Labor Force Utilization Section
