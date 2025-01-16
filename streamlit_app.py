@@ -231,7 +231,7 @@ else:
     st.warning("Please select a valid product to display the target fill level.")
 
 # Production Data Section
-st.header("Production Data")
+st.header("Production Data (Testing)")
 
 # Input for production rate
 production_rate_testing = st.number_input(
@@ -241,7 +241,13 @@ production_rate_testing = st.number_input(
     value=0
 )
 
-# Labor Force Utilization Section
+# Alert for low production rate
+if production_rate_testing < 75 and production_rate_testing > 0:
+    st.warning(
+        f"⚠️ The production rate of {production_rate_testing} units per minute is below the target threshold of 75 units per minute. "
+        "Please take immediate action to improve the line's performance."
+    )
+    st.info("Suggested actions: Check bottlenecks, ensure all employees are performing their tasks efficiently, and review machine settings.")# Labor Force Utilization Section
 st.header("Labor Force Utilization")
 
 # Input for number of employees working on the line
