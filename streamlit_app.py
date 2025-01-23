@@ -16,13 +16,6 @@ scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/au
 credentials_path = "GOOGLE_CREDENTIALS-JSON.json"
 
 # Load credentials from Streamlit Secrets
-# Google Sheets Setup
-import json
-from oauth2client.service_account import ServiceAccountCredentials
-
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-
-# Load credentials from Streamlit Secrets
 credentials_json = st.secrets["GOOGLE_CREDENTIALS_JSON"]
 credentials_dict = json.loads(credentials_json)
 
@@ -40,44 +33,6 @@ if "dataTesting" not in st.session_state:
 # Initialize DataFrame for plotting if not already in session state
 if "plot_data" not in st.session_state:
     st.session_state["plot_data"] = pd.DataFrame(columns=["timestamp", "production_line", "production_rate"])
-
-# Helper function to plot scatter and trendline for each line
-def plot_individual_lines(data):
-    grouped = data.groupby("production_line")
-    for line, group in grouped:
-        plt.figure(figsize=(10, 6))
-
-        # Convert timestamps to datetime objects
-        group["time"] = pd.to_datetime(group["timestamp"])
-
-        # Prepare x and y data
-        x = group["time"]
-        y = group["production_rate"].values
-
-        # Scatter plot
-        plt.scatter(x, y, label=f"{line} (Data Points)")
-
-        # Trendline using Linear Regression
-        if len(x) > 1:  # Fit only if there's enough data
-            # Convert datetime to numeric values for regression
-            x_numeric = np.array([t.timestamp() for t in x]).reshape(-1, 1)
-            model = LinearRegression()
-            model.fit(x_numeric, y)
-            y_pred = model.predict(x_numeric)
-            plt.plot(x, y_pred, label=f"{line} (Trendline)", linestyle="--")
-
-        # Format the x-axis range
-        plt.xlim([datetime.combine(datetime.now(), time(8, 0)),
-                  datetime.combine(datetime.now(), time(19, 0))])
-        plt.xticks(rotation=45)
-        plt.title(f"Production Rates for {line}")
-        plt.xlabel("Time of Day")
-        plt.ylabel("Production Rate (Bottles per Minute)")
-        plt.legend()
-        plt.grid(True)
-
-        # Display the plot in Streamlit
-        st.pyplot(plt)
 
 # Target fill levels for each product (in ounces)
 target_fill_levels_testing = {
@@ -149,12 +104,33 @@ product_testing = st.selectbox(
     options=list(target_fill_levels_testing.keys())
 )
 
+# Label Placement Section
+st.header("Label Placement Check")
+
+# Check if the label is level
+is_label_level = st.radio(
+    "Is the label level?",
+    options=["Yes", "No"]
+)
+
+# Check if both the front and back labels are level
+are_front_back_labels_level = st.radio(
+    "Are both the front and back labels level?",
+    options=["Yes", "No"]
+)
+
+# Check if there is any wrinkling in the label
+is_label_wrinkled = st.radio(
+    "Is there any wrinkling in the label?",
+    options=["Yes", "No"]
+)
+
 # Torque Testing
 st.header("Torque Testing")
 st.markdown(
     """
     **Instructions for Torque Testing**:  
-    Test 3 different samples using the torque measurement device and record the results below. Turn the cap horizontally in a couterclockwise motion, and do not apply downward pressure.
+    Test 3 different samples using the torque measurement device and record the results below. Turn the cap horizontally in a counterclockwise motion, and do not apply downward pressure.
     """
 )
 
@@ -198,7 +174,7 @@ if bottle_batch_code and case_batch_code:
     else:
         st.error("The bottle and case batch codes do not match. Notify the supervisor.")
         batch_code_match = "No"
-# Fill Level Section
+
 # Fill Level Section
 st.header("Fill Level Check")
 
@@ -245,10 +221,12 @@ production_rate_testing = st.number_input(
 # Alert for low production rate
 if production_rate_testing < 75 and production_rate_testing > 0:
     st.warning(
-        f"⚠️ The production rate of {production_rate_testing} units per minute is below the target threshold of a minimum of 75 units per minute. Please work to increase above 80 and provide comments on what you think is needed to achieve this target. "
+        f"\u26A0\uFE0F The production rate of {production_rate_testing} units per minute is below the target threshold of a minimum of 75 units per minute. Please work to increase above 80 and provide comments on what you think is needed to achieve this target. "
         "Please take immediate action to improve the line's performance."
     )
-    st.info("Suggested actions: Check bottlenecks, ensure all employees are performing their tasks efficiently, and review machine settings.")# Labor Force Utilization Section
+    st.info("Suggested actions: Check bottlenecks, ensure all employees are performing their tasks efficiently, and review machine settings.")
+
+# Labor Force Utilization Section
 st.header("Labor Force Utilization")
 
 # Input for number of employees working on the line
@@ -296,7 +274,10 @@ if submit_testing:
         batch_code_match or "",                    # Batch Code Match (Yes/No)
         production_rate_testing or 0,              # Production Rate
         total_employees_testing or 0,              # Total Employees
-        supervisor_comments_testing or ""          # Supervisor Comments
+        supervisor_comments_testing or "",         # Supervisor Comments
+        is_label_level,                            # Is Label Level
+        are_front_back_labels_level,               # Are Front and Back Labels Level
+        is_label_wrinkled                          # Is Label Wrinkled
     ]
 
     # Append Data to Google Sheets
