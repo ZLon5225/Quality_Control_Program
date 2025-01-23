@@ -208,7 +208,7 @@ else:
     st.warning("Please select a valid product to display the target fill level.")
 
 # Production Data Section
-st.header("Production Data (Testing)")
+st.header("Production Data")
 
 # Input for production rate
 production_rate_testing = st.number_input(
